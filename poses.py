@@ -1,18 +1,23 @@
 import cv2                          # Biblioteca para vídeo e imagens
 import mediapipe as mp              # Biblioteca do Google para reconhecimento corporal
 import numpy as np                  # Para cálculos matemáticos (vetores e ângulos)
+import serial  
+import time
 
 # Inicializa o modelo de detecção de pose
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
 mp_draw = mp.solutions.drawing_utils  # Para desenhar na tela
 
+arduino = serial.Serial('COM5', 9600, timeout=1)
+time.sleep(2)
+
 # Contador de repetições
 contador = 0
 fase = None  # 'descendo' ou 'subindo'
 
 # Abre a webcam
-cap = cv2.VideoCapture("exercicio.mp4")
+cap = cv2.VideoCapture(0)
 
 while True:
     ret, frame = cap.read()          # Captura o vídeo frame a frame
@@ -56,6 +61,13 @@ while True:
             fase = 'subindo'
             contador += 1
 
+        if contador == 3:
+            arduino.write(b'0')
+        elif contador == 6:
+            arduino.write(b'1')
+        elif contador == 9:
+            arduino.write(b'2')
+
         # Exibe o número de repetições
         cv2.putText(frame, f"Repeticoes: {contador}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -70,3 +82,5 @@ while True:
 # Finaliza a aplicação
 cap.release()
 cv2.destroyAllWindows()
+
+arduino.close()
